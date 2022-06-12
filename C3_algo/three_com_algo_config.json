@@ -1,0 +1,61 @@
+{
+  "model_version": "4.02",
+  "description": "Running the model, after finding the best user based weighting",
+  "random_seed": 1984,
+  "data_path": {
+    "yalla": "/data/work/data/reddit_place/embedding/embedding_per_sr",
+    "SSARUSI-MOBL1": "C:\\Users\\ssarusi\\Desktop\\second_degree\\semester_d\\NLP\\data",
+    "AVRAHAMI-PC": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\reddit_canvas\\reddit_proj_with_yalla_cluster"
+	},
+  "users_data_path": {
+    "yalla": "/data/work/data/reddit_place",
+    "SSARUSI-MOBL1": "C:\\Users\\ssarusi\\Desktop\\second_degree\\semester_d\\NLP\\data",
+    "AVRAHAMI-PC": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\reddit_canvas\\data"
+  },
+  "model_output_path": {
+    "yalla": "/data/home/isabrah/3com_project_data/",
+    "AVRAHAMI-PC": ""
+  },
+  "labels_path": {
+    "yalla": "/data/work/data/reddit_place/3com_labels/",
+    "SSARUSI-MOBL1": "",
+    "AVRAHAMI-PC": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\reddit_canvas\\data"
+  },
+  "general_config": {
+    "labels_version": "V4",
+    "model_type": "4.02",
+    //"embedding_model_name": "fastext",
+    "embedding_model_name": "w2v",
+    "cpu_count": 50,
+    //if chunk_size is -1 -> all pairs will be calculated. chunk_index is used to run in parallel over few servers
+    "chunk_size": 50000,
+    "chunk_index": 6
+  },
+  "algo_parmas": {
+    "vocab_perc_thres": 20,
+    //"method": "union",
+    "method": "intersection",
+    "top_tf_idf_weights_perc": 0.01,
+    //case we want to keep only part of the word pairs - those with high/low distances
+    "keep_only_extreme_distances": "False",
+    //if set to true - both high and low values are taken into account, else only the low values are used
+    "apply_both_ends": "False",
+    "top_bottom_distances_perc": 0.2
+  },
+  "current_run_flags": {
+    "ad_hoc_names": "None",
+    //"ad_hoc_names": "['2b2t_parta', '2b2t_partb', '2meirl4meirl_parta', '2meirl4meirl_partb']",
+    "apply_vocab_thres": "False",
+    "calc_vocab_distr": "False",
+    "load_valid_names": "False",
+    "calc_combinations": "False",
+    //only used if some of the pairs were calculated already and some are still missing
+    "filter_pairs": "False",
+    "calc_tf_idf": "False",
+    "calc_idf": "False",
+    "calc_scores": "True",
+    "calc_dis": "True",
+    //this should be False most of the times, unless we ran a very small subset (if ad_hoc_names is not None, this can be True)
+    "save_dis_matrix": "False"
+  }
+}
