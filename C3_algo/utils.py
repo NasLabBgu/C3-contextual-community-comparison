@@ -1,22 +1,17 @@
-import sys
-import os
-# adding the parent path so we'll be able to import internal packages
-sys.path.append(os.path.dirname(os.getcwd()))
 
+import os
 from os.path import join
 from gensim.models import Word2Vec, FastText
 import re
-import pickle
+import pandas as pd
 
 
-def get_models_names(config_dict):
+def get_models_names(path):
     """
 
     :param path: string. path of the files.
     :return: List. models of selected type.
     """
-    model_type = config_dict['general_config']['model_type']
-    path = config_dict['data_path'][config_dict['machine']]
     lst = [f for f in os.listdir(path) if re.match(r".*_model_" + '.*.' + r"\.model$", f)]
     return [x.split('_model_')[0] for x in lst]
 
@@ -31,7 +26,7 @@ def load_model(path, name, config_dict):
     """
     # if this one raises an error, it means that the model we expect to see doesn't exist
     full_name = [f for f in os.listdir(path)
-                 if re.match(name + r"_model_" + config_dict['general_config']['model_type'] + r"\.model$", f)][0]
+                 if f.startswith(name) and f.endswith('.model')][0]
     if config_dict['general_config']['embedding_model_name'] == 'w2v':
         #print(f"Trying to load model file name {full_name}")
         return Word2Vec.load(join(path, full_name))
@@ -49,22 +44,23 @@ def load_tfidf(path, name):
     :return:
     """
     full_name = 'tf_idf_' + name
-    with open(join(path, full_name + '.p'), 'rb') as handle:
-        tfidf = pickle.load(handle)
-    return tfidf
+    full_name = join(path, full_name + '.csv')
+    tf_idf_as_df = pd.read_csv(full_name)
+    tfidf_as_dict = tf_idf_as_df.set_index('word')['value'].to_dict()
+    return tfidf_as_dict
 
 
 def load_user_based_word_weights(path, name):
     """
-
     :param path:
     :param name:
     :return:
     """
     full_name = 'user_based_word_weights_' + name
-    with open(join(path, full_name + '.p'), 'rb') as handle:
-        tfidf = pickle.load(handle)
-    return tfidf
+    full_name = join(path, full_name + '.csv')
+    user_based_word_weights_as_df = pd.read_csv(full_name)
+    user_based_word_weights_as_dict = user_based_word_weights_as_df.set_index('word')['value'].to_dict()
+    return user_based_word_weights_as_dict
 
 
 def filter_pairs(lst, config_dict):

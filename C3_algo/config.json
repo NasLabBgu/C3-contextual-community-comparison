@@ -1,0 +1,42 @@
+{
+  "model_version": "0.01",
+  "description": "Dummy run of the C3 algorithm",
+  "random_seed": 1984,
+  "embedding_models_path": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\courses\\advanced NLP\\project\\C3-contextual-community-comparison\\data\\embedding_models",
+  "user_based_word_weights_path": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\courses\\advanced NLP\\project\\C3-contextual-community-comparison\\data\\user_based_word_weights",
+  "tf_idf_path": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\courses\\advanced NLP\\project\\C3-contextual-community-comparison\\data\\tf_idf",
+  "model_output_path": "C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\courses\\advanced NLP\\project\\C3-contextual-community-comparison\\C3_results",
+  "general_config": {
+    //has to be either w2v or fastext
+    "embedding_model_name": "w2v",
+    "cpu_count": 1,
+    //if chunk_size is -1 -> all pairs will be calculated. chunk_index is used to run in parallel over few servers
+    "chunk_size": 50000,
+    "chunk_index": 6
+  },
+  "algo_parmas": {
+    "vocab_perc_thres": 20,
+    //"method": "union",
+    "method": "intersection",
+    "top_tf_idf_weights_perc": 0.01,
+    //case we want to keep only part of the word pairs - those with high/low distances
+    "keep_only_extreme_distances": "False",
+    //if set to true - both high and low values are taken into account, else only the low values are used
+    "apply_both_ends": "False",
+    "top_bottom_distances_perc": 0.2
+  },
+  "current_run_flags": {
+    "ad_hoc_names": "None",
+    //"ad_hoc_names": "['2b2t_parta', '2b2t_partb', '2meirl4meirl_parta', '2meirl4meirl_partb']",
+    "apply_vocab_thres": "False",
+    "calc_vocab_distr": "False",
+    "load_valid_names": "False",
+    "calc_tf_idf": "False",
+    "calc_idf": "False",
+    //this shoudl be set to True only in case we have this information (a folder with a csv per model that contains
+    //the weight word for each community
+    "calc_c3_using_user_based_word_weights": "True",
+    //this should be False most of the times, unless we ran a very small subset (if ad_hoc_names is not None, this can be True)
+    "save_dis_matrix": "False"
+  }
+}

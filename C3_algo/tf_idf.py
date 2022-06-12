@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.getcwd()))
 
 from os.path import join
 import platform as p
-from three_com_algo.utils import get_models_names, load_model
+from C3_algo.utils import get_models_names, load_model
 import pickle
 import math
 import multiprocessing as mp
@@ -140,15 +140,6 @@ def calc_tf_idf_all_models(m_names, config_dict):
     pool = mp.Pool(processes=config_dict['general_config']['cpu_count'])
     with pool as pool:
         pool.starmap(calc_tf_idf, lst)
-
-    # for i, m_name in enumerate(m_names):
-    #     if i % 100 == 0:
-    #         print(f" i: {i}, model name: {m_name}")
-    #     wc_f_name = 'wc_' + m_name
-    #     with open(join(c.tf_idf_path, wc_f_name + '.pickle'), 'rb') as handle:
-    #         wc = pickle.load(handle)
-    #     m_f_name = 'tf_idf_' + m_name
-    #     calc_tf_idf(wc=wc, m_f_name=m_f_name, idf=idf)
     return
 
 
