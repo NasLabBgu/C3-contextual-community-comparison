@@ -28,7 +28,6 @@ def load_model(path, name, config_dict):
     full_name = [f for f in os.listdir(path)
                  if f.startswith(name) and f.endswith('.model')][0]
     if config_dict['general_config']['embedding_model_name'] == 'w2v':
-        #print(f"Trying to load model file name {full_name}")
         return Word2Vec.load(join(path, full_name))
     elif config_dict['general_config']['embedding_model_name'] == 'fastext':
         return FastText.load(join(path, full_name))

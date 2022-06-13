@@ -267,7 +267,7 @@ def compare(i, n_model_1, n_model_2, config_dict):
         score_user_based_weight = calc_distance_between_comm(d1=dis_1, d2=dis_2, w=w_pairs_user_based)
         score_hybrid_weight = calc_distance_between_comm(d1=dis_1, d2=dis_2, w=w_pairs_hybrid)
         # in case we do not want/can calculate the distance user_based_weight - we will set it to None
-        if eval(config_dict["current_run_flags"]["calc_c3_using_user_based_word_weights"]):
+        if not eval(config_dict["current_run_flags"]["calc_c3_using_user_based_word_weights"]):
             score_user_based_weight = None
         res = {'name_m1': n_model_1, 'name_m2': n_model_2, 'unweighted_score': unweighted_score,
                'score_tf_idf_based': score_tf_idf_weight, 'score_user_based_weight': score_user_based_weight,
