@@ -1,6 +1,9 @@
+# Authors: Abraham Israeli (isabrah@post.bgu.ac.il)
+# Python version: 3.7
+# Last update: 13.6.2022
 
 import os
-from C3_algo.utils import load_model, load_tfidf, load_user_based_word_weights, filter_pairs
+from C3_algo.utils import load_model, load_tfidf, load_user_based_word_weights
 from os.path import join
 import numpy as np
 from itertools import combinations
@@ -13,25 +16,19 @@ import multiprocessing as mp
 import traceback
 
 
-def generate_weights(model):
-    """
-
-    :param model:
-    :return:
-    """
-    words = model.wv.index2entity
-    r = np.random.random(len(words))
-    weights = r/r.sum()
-    return dict(zip(words, weights))
-
-
 def calc_vec_distances(name, vectors_matrix, metric, config_dict):
     """
-    calc the distance between vectors representing words (for each SR seperatly)
-    :param name: String. file name for distances matrix
-    :param vectors_matrix: Numpy array. he vectors to calc distances between them
-    :param metric: String. distance metric.
-    :return: Numpy array - distances matrix.
+    calc the distance between vectors representing words (for each SR seperatly). Also saves the distance matrix as a
+    pickle file
+    :param name: string
+        file name for distances matrix.
+    :param vectors_matrix: np array.
+        the vectors to calc distances between
+    :param config_dict: dict
+        the configuration dictionary with all the relevant parameters. This dictionary is the loaded dictionary from the
+        config.json file.
+    :return: np array
+        the distances matrix between the two.
     """
     dis_matrix = pdist(X=vectors_matrix, metric=metric)
     if eval(config_dict['current_run_flags']['save_dis_matrix']):
@@ -40,19 +37,19 @@ def calc_vec_distances(name, vectors_matrix, metric, config_dict):
     return dis_matrix
 
 
-def get_selected_weights(w_dict, keys_lst, normalize, config_dict):
+def get_selected_weights(w_dict, keys_lst, normalize):
     """
 
     :param w_dict: dict
         the full dictionary of the SR (including words we don't really care about in a specific comparison
     :param keys_lst: list
         includes the desired words to take into account (either the intersected words between SRs or unions between them)
-    :param normalize:
-    :return: ndarray (numpy), where unselected words have a zero weight
+    :param normalize: bool
+        whether to normalize the results or not
+    :return: np array
+        the location where unselected words have a zero weight
     """
-    # case we have to add to the dictionary some new words which belong the compared SR - hence zero value words are added
-    #if config_dict['algo_parmas']['method'] == 'union':
-    ### CHANGE HERE!!! ##########
+
     new_w = np.setdiff1d(keys_lst, np.array(list(w_dict.keys())), assume_unique=True)
     w_dict.update(dict(zip(new_w, np.zeros(len(new_w)))))  # add new words to dict with weight=0
     v = np.array(itemgetter(*keys_lst)(w_dict))
@@ -64,12 +61,14 @@ def get_selected_weights(w_dict, keys_lst, normalize, config_dict):
 def calc_pairwise_weights(arr, agg_function='mean', normalize=False):
     """
 
-    :param arr: Numpy array. array of positive weights.
-    :param f_name: String. file name for the pairwise_weights (save/load).
-    :param normalize: whether to normalize the weights vector.
+    :param arr: np array
+        array of positive weights.
+    :param normalize: bool. Default: False
+        whether to normalize the weights vector.
     :param agg_function: string
         the function to apply between the two vectors. Currently it can be mean or max
-    :return: condensed matrix of max weight for each two elements in arr.
+    :return: np array
+        a condensed matrix of max weight for each two elements in an numpy array.
     """
     n = len(arr)
     N = n * (n - 1) // 2
@@ -91,29 +90,15 @@ def calc_pairwise_weights(arr, agg_function='mean', normalize=False):
     return pairs_w
 
 
-def generate_pairwise_names(arr_names):
-    """
-
-    :param arr: Numpy array. array of positive weights.
-    :param f_name: String. file name for the pairwise_weights (save/load).
-    :param normalize: whether to normalize the weights vector.
-    :param calc: Boolean.
-    :return: condensed matrix of max weight for each two elements in arr.
-    """
-    n = len(arr_names)
-    pairwise_names = list()
-    for j, i in enumerate(range(n - 1)):
-        curr = np.array([np.repeat(arr_names[i], len(arr_names[i + 1:])), np.array(arr_names[i + 1:])])
-        pairwise_names.extend(list(zip(curr[0], curr[1])))
-    return pairwise_names
-
-
 def keep_top_weights(arr, top_perc):
     """
 
-    :param arr: Numpy array- original weights.
-    :param top_perc: Int - the percentage of top (highest) weights to keep.
-    :return: Numpy array- new weights after selecting top.
+    :param arr: np array
+        original weights.
+    :param top_perc: int
+        the percentage of top (highest) weights to keep.
+    :return: np array
+        the new weights after selecting the top weights only.
     """
     min_thres = np.percentile(arr, 100-top_perc)
     arr_t = np.where(arr < min_thres, 0, arr)
@@ -141,13 +126,18 @@ def apply_extreme_distances_filter(dis_vector_1, dis_vector_2, apply_both_ends, 
 
 def calc_distance_between_comm(d1, d2, w):
     """
+    calculates the final distance between two communities. This is (almost final) calculation of C3.
+    :param d1: np array
+        the condensed matrix of distances between intersection words - community 1
+    :param d2: np array
+        condensed matrix of distances between intersection words - community 2
+    :param w: np array
+        condensed matrix of weights for pairs of intersection words
+        Note: words' order should be identical in d1, d2, w
 
-    :param d1: condensed matrix of distances between intersection words - community 1
-    :param d2: condensed matrix of distances between intersection words - community 2
-    :param w: condensed matrix of weights for pairs of intersection words
-    Note: words' order should be identical in d1, d2, w
-
-    :return: float [0, 2] - distance between community 1 and 2 = weighted average of absolute difference between intersection words
+    :return: float
+        a float number in the [0, 2] range. This is the C3 distance between community 1 and 2:
+        This is actually the weighted average of absolute difference between intersection words
     """
     abs_d = abs(d1 - d2)
     return np.matmul(abs_d, w.T)
@@ -155,11 +145,18 @@ def calc_distance_between_comm(d1, d2, w):
 
 def compare(i, n_model_1, n_model_2, config_dict):
     """
-
-    :param i: Int. current iteration.
-    :param n_model_1: String. name of model_1.
-    :param n_model_2: String. name of model_2.
-    :return:
+    runs the full comparison between two communities, including the C3 calculation
+    :param i: int
+        the current iteration (a number between 0 to inf).
+    :param n_model_1: string
+        name of the first model.
+    :param n_model_2: string
+        name of the second model.
+    :param config_dict: dict
+        the configuration dictionary with all the relevant parameters. This dictionary is the loaded dictionary from the
+        config.json file.
+    :return: dict
+        a dictionary with all the results (e.g., unweighted_score)
     """
     try:
         start = time.time()
@@ -207,18 +204,14 @@ def compare(i, n_model_1, n_model_2, config_dict):
         f_name = 'pair_w_' + n_model_1 + '_' + n_model_2
         # 4- calc weights for intersection words (tf-idf based)
         # get weights of selected words per community
-        w_1_tf_idf = get_selected_weights(w_dict=tf_idf_weights_1, keys_lst=w_lst, normalize=False,
-                                          config_dict=config_dict)
-        w_2_tf_idf = get_selected_weights(w_dict=tf_idf_weights_2, keys_lst=w_lst, normalize=False,
-                                          config_dict=config_dict)
+        w_1_tf_idf = get_selected_weights(w_dict=tf_idf_weights_1, keys_lst=w_lst, normalize=False)
+        w_2_tf_idf = get_selected_weights(w_dict=tf_idf_weights_2, keys_lst=w_lst, normalize=False)
 
         if eval(config_dict["current_run_flags"]["calc_c3_using_user_based_word_weights"]):
             user_based_word_weights_1 = load_user_based_word_weights(path=user_based_word_weights_path, name=n_model_1)
             user_based_word_weights_2 = load_user_based_word_weights(path=user_based_word_weights_path, name=n_model_2)
-            w_1_user_based = get_selected_weights(w_dict=user_based_word_weights_1, keys_lst=w_lst, normalize=False,
-                                                  config_dict=config_dict)
-            w_2_user_based = get_selected_weights(w_dict=user_based_word_weights_2, keys_lst=w_lst, normalize=False,
-                                                  config_dict=config_dict)
+            w_1_user_based = get_selected_weights(w_dict=user_based_word_weights_1, keys_lst=w_lst, normalize=False)
+            w_2_user_based = get_selected_weights(w_dict=user_based_word_weights_2, keys_lst=w_lst, normalize=False)
         else:
             w_1_user_based = w_1_tf_idf.copy()
             w_2_user_based = w_2_tf_idf.copy()
@@ -286,10 +279,15 @@ def compare(i, n_model_1, n_model_2, config_dict):
 
 def calc_scores_all_models(m_names, config_dict):
     """
-
+    calculates scores over all pair of communities. This is done in a multiprocess way, relying on the 'compare'
+    function. Note that by default we calculate the distance between ALL pair of communities.
     :param m_names: list
-        list of names of all communities
-    :return:
+        list of names of all communities to calculate the scores for
+    :param config_dict: dict
+        the configuration dictionary with all the relevant parameters. This dictionary is the loaded dictionary from the
+        config.json file.
+    :return: None
+        save the results to a csv file, under the results path specified in the config file (under 'model_output_path').
     """
     m_version = config_dict['model_version']
     metrics = pd.DataFrame(columns=['name_m1', 'name_m2', 'score', 'wc_m1', 'wc_m2', 'wc_inter'])

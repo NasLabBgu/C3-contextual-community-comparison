@@ -1,3 +1,7 @@
+# Authors: Abraham Israeli (isabrah@post.bgu.ac.il)
+# Python version: 3.7
+# Last update: 13.6.2022
+
 import pickle
 from os.path import join as opj
 import pandas as pd
@@ -7,11 +11,19 @@ data_path = 'C:\\Users\\avrahami\\Documents\\Private\\Uni\\BGU\\PhD\\courses\\ad
 srs_corpus_names = ['acmilan', 'c_programming', 'football', 'java', 'timbers']
 for cur_sr in srs_corpus_names:
     cur_tf_idf_f_name = 'tf_idf_' + cur_sr + '.p'
-    cur_tf_idf_file = pickle.load(open(opj(data_path, cur_tf_idf_f_name), "rb" ))
+    cur_tf_idf_file = pickle.load(open(opj(data_path, cur_tf_idf_f_name), "rb"))
     cur_tf_idf_as_df = pd.DataFrame.from_dict(cur_tf_idf_file, orient='index', columns=['value'])
     cur_tf_idf_as_df.reset_index(inplace=True)
     cur_tf_idf_as_df = cur_tf_idf_as_df.rename(columns={'index': 'word'})
     cur_tf_idf_as_df.to_csv(opj(data_path, 'tf_idf_' + cur_sr + '.csv'), index=False)
+
+# now doing the same for the IDF dict
+idf_f_name = 'idf_dict.p'
+cur_idf_file = pickle.load(open(opj(data_path, idf_f_name), "rb"))
+cur_idf_as_df = pd.DataFrame.from_dict(cur_idf_file, orient='index', columns=['value'])
+cur_idf_as_df.reset_index(inplace=True)
+cur_idf_as_df = cur_idf_as_df.rename(columns={'index': 'word'})
+cur_idf_as_df.to_csv(opj(data_path, 'idf_dict' + '.csv'), index=False)
 
 # in case we wish to load it to a dict object (used while loading the data in the C3 algo):
 #cur_tf_idf_path = opj(data_path, 'tf_idf_' + srs_corpus_names[0] + '.csv')
